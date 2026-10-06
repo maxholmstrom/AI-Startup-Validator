@@ -1,0 +1,6 @@
+@AI_Startup_Validator_HostAddress = http://localhost:5005
+
+GET {{AI_Startup_Validator_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
