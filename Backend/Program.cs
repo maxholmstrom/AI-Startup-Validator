@@ -1,4 +1,12 @@
 using Backend.Models;
+using Backend.Services;
+using DotNetEnv;
+
+Env.Load();
+
+var apiKey = Environment.GetEnvironmentVariable("OPENAI_API_KEY");
+var model = Environment.GetEnvironmentVariable("OPENAI_MODEL");
+var endpoint = Environment.GetEnvironmentVariable("OPENAI_ENDPOINT");
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -12,6 +20,10 @@ builder.Services.AddCors(options =>
             .AllowAnyMethod();
     });
 });
+
+builder.Services.AddHttpClient();
+
+builder.Services.AddScoped<AiValidationService>();
 
 var app = builder.Build();
 
@@ -35,28 +47,17 @@ app.MapPost("/api/startups", (Startup startup) =>
     return startup;
 });
 
-app.MapPost("/api/startups/validate", (Startup startup) =>
-{
-    var result = new ValidationResult
+app.MapPost("/api/startups/validate",
+    async (Startup startup, AiValidationService aiService) =>
     {
-        OverallScore = 78,
-        ProblemScore = 8,
-        MarketScore = 7,
-        DifferentiationScore = 6,
-        MonetizationScore = 7,
-        TechnicalScore = 9,
-        GoToMarketScore = 6,
+        var result = await aiService.ValidateStartup(startup);
 
-        Summary = "The startup solves a clear problem and has potential.",
+        if (result == null)
+        {
+            return Results.Problem("AI did not return a validation result.");
+        }
 
-        BiggestStrength = "The idea has a clear value proposition.",
-
-        BiggestRisk = "The market may already contain strong competitors.",
-
-        Recommendation = "Validate the problem with potential customers before building the full product."
-    };
-
-    return result;
-});
+        return Results.Ok(result);
+    });
 
 app.Run();

@@ -39,7 +39,7 @@ function App() {
 
     return (
         <main>
-        <h1>VentureLens </h1>
+        <h1>Startup Validator</h1>
         <p> Validate your startup idea with AI.</p>
 
         <form onSubmit={handleSubmit}>
