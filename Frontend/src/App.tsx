@@ -1,4 +1,5 @@
 import { useState } from "react";
+import type { ValidationResult } from "./type/ValidationResult";
 
 function App() {
     const [name, setName] = useState("");
@@ -6,6 +7,7 @@ function App() {
     const [problem, setProblem] = useState("");
     const [targetCustomer, setTargetCustomer] = useState("");
     const [businessModel, setBusinessModel] = useState("");
+    const [validation, setValidation] = useState<ValidationResult | null>(null);
 
     async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
         e.preventDefault();
@@ -18,18 +20,22 @@ function App() {
             businessModel,
         };
 
-        const response = await fetch("http://localhost:5005/api/startups", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-            },
-            body: JSON.stringify(startup),
-        });
+        const response = await fetch(
+            "http://localhost:5005/api/startups/validate",
+            {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify(startup),
+            }
+        );
 
-        const data = await response.json();
+        const data: ValidationResult = await response.json();
 
-        console.log(data);
+        setValidation(data);
     }
+
 
     return (
         <main>
@@ -85,7 +91,55 @@ onChange = {(e) => setBusinessModel(e.target.value)}
         Validate idea
             </button>
             </form>
-            </main>
+{
+    validation && (
+        <section>
+        <h2>Validation Result </h2>
+
+            <h3> { validation.overallScore } / 100 </h3>
+
+            <p>
+            <strong>Problem: </strong> {validation.problemScore}/10
+            </p>
+
+            <p>
+            <strong>Market: </strong> {validation.marketScore}/10
+            </p>
+
+            <p>
+            <strong>Differentiation: </strong>{" "}
+            {validation.differentiationScore}/10
+            </p>
+
+            <p>
+            <strong>Monetization: </strong>{" "}
+            {validation.monetizationScore}/10
+            </p>
+
+            <p>
+            <strong>Technical feasibility: </strong>{" "}
+            {validation.technicalScore}/10
+            </p>
+
+            <p>
+            <strong>Go - to - market: </strong>{" "}
+            {validation.goToMarketScore}/10
+            </p>
+
+            <h3> Summary </h3>
+            <p> { validation.summary } </p>
+
+            <h3> Biggest Strength </h3>
+            <p> { validation.biggestStrength } </p>
+
+            <h3> Biggest Risk </h3>
+            <p> { validation.biggestRisk } </p>
+
+            <h3> Recommendation </h3>
+            <p> { validation.recommendation } </p>
+        </section>
+        )}
+    </main>
   );
 }
 
